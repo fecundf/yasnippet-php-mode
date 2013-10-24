@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import re
+import re, os
 
 FUNC_SKEL = """#contributor : Andrew Gwozdziewycz <web@apgwoz.com>
 #name : %(func_name)s(%(func_sig)s)
@@ -8,6 +8,7 @@ FUNC_SKEL = """#contributor : Andrew Gwozdziewycz <web@apgwoz.com>
 %(func_name)s(%(func_args)s)$0"""
 
 func_args_re = re.compile('([a-zA-Z0-9_]+) \((.*?)\)')
+func_to_package = re.compile('_.+')
 
 def split_func_args(file):
     fi = open(file)
@@ -52,7 +53,29 @@ def generate_snippets(outpath, defs):
         ellipsis = ', '.join(['...'] * len(d[1]))
         args = ', '.join(['${%s}' % x for x in d[1]])
         filename = d[0].replace('_', '.', 1).replace('_', '-')
-        f = open(outpath + '/' + filename, 'w')
+
+        # Remove entries from old versions
+        if os.path.isfile(outpath + '/' + d[0]):
+            os.remove(outpath + '/' + d[0])
+        if os.path.isfile(outpath + '/' + d[0].replace('_', '.')):
+            os.remove(outpath + '/' + d[0].replace('_', '.'))
+        if os.path.isfile(outpath + '/' + filename):
+            os.remove(outpath + '/' + filename)
+
+        filename = d[0];
+        (package,made_sub) = func_to_package.subn('',filename)
+        if made_sub:
+            subdir = package.replace('.','/')
+            filename = subdir + '/' + filename
+            if os.path.isfile(outpath + '/' + subdir):
+                os.remove(outpath + '/' + subdir)
+            if not os.path.exists(outpath + '/' + subdir):
+                os.makedirs(outpath + '/' + subdir)
+            
+        filename = outpath + '/' + filename
+        if os.path.isdir(filename):
+            filename = filename + '/' + d[0]
+        f = open(filename, 'w')
         f.write(FUNC_SKEL % {'func_sig': ellipsis,
                            'func_name': d[0],
                            'func_args': args})

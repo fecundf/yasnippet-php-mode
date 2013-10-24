@@ -1,6 +1,4 @@
-#contributor : Andrew Gwozdziewycz <web@apgwoz.com>
-#name : if (...) {...}
+#contributor : Yary <not.com@gmail.com>
+#name : if (...) ...;
 # --
-if (${condition}) {
-   $0
-}
+if (${condition}) $0;
